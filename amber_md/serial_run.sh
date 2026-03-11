@@ -112,14 +112,19 @@ if [[ -z "$REF_COORDS" ]]; then
 fi
 
 # 检查 AMBER 可执行程序（EM 和 MD 分别检查，dry-run 时跳过）
+# 取第一个词检查，以支持 'singularity exec ... pmemd' 这类多词命令
 if [[ "$DRYRUN" == false ]]; then
-    if ! command -v "$AMBER_EXE_EM" &> /dev/null; then
-        echo -e "${RED}[ERROR]${NC} AMBER EM executable not found: $AMBER_EXE_EM"
+    _EM_BIN=$(echo "$AMBER_EXE_EM" | awk '{print $1}')
+    _MD_BIN=$(echo "$AMBER_EXE_MD" | awk '{print $1}')
+    if ! command -v "$_EM_BIN" &> /dev/null; then
+        echo -e "${RED}[ERROR]${NC} AMBER EM executable not found: $_EM_BIN"
+        echo "  (from: $AMBER_EXE_EM)"
         echo "  Please check your AMBER installation or specify with -E or -e"
         exit 1
     fi
-    if ! command -v "$AMBER_EXE_MD" &> /dev/null; then
-        echo -e "${RED}[ERROR]${NC} AMBER MD executable not found: $AMBER_EXE_MD"
+    if ! command -v "$_MD_BIN" &> /dev/null; then
+        echo -e "${RED}[ERROR]${NC} AMBER MD executable not found: $_MD_BIN"
+        echo "  (from: $AMBER_EXE_MD)"
         echo "  Please check your AMBER installation or specify with -M or -e"
         exit 1
     fi
@@ -241,7 +246,9 @@ run_step() {
     echo -e "  ${GREEN}[RUN]${NC} Started at: $(date '+%Y-%m-%d %H:%M:%S')"
 
     # 运行 AMBER
-    "$exe" -O \
+    # 注意：$exe 不加引号，以支持 'singularity exec ... pmemd' 这类多词命令
+    # shellcheck disable=SC2086
+    $exe -O \
         -i  "$input_file" \
         -o  "$out_file" \
         -p  "$TOPOLOGY" \
@@ -312,17 +319,17 @@ PIPELINE_START=$(date +%s)
 #
 STEPS=(
     "em-1|em-1_in.txt|em|-"
-    "em-2|em-2_in.txt|md|-"
-    "em-3|em-3_in.txt|md|-"
-    "em-4|em-4_in.txt|md|-"
-    "em-5|em-5_in.txt|md|-"
-    "em-6|em-6_in.txt|md|yes"
+    "em-2|em-2_in.txt|em|-"
+    "em-3|em-3_in.txt|em|-"
+    "em-4|em-4_in.txt|em|-"
+    "em-5|em-5_in.txt|em|-"
     "nvt-1|nvt-1_in.txt|md|-"
     "nvt-2|nvt-2_in.txt|md|-"
     "nvt-3|nvt-3_in.txt|md|-"
     "nvt-4|nvt-4_in.txt|md|-"
     "nvt-5|nvt-5_in.txt|md|-"
     "nvt-6|nvt-6_in.txt|md|-"
+    "nvt-7|nvt-7_in.txt|md|yes"
     "npt-1|npt-1_in.txt|md|-"
     "npt-2|npt-2_in.txt|md|-"
     "npt-3|npt-3_in.txt|md|-"
