@@ -4,7 +4,7 @@ set -euo pipefail
 
 # ── 默认参数 ────────────────────────────────────────────────────────────────
 SIZE_LIMIT="200M"
-ZIP_DIR="$HOME/Desktop"
+ZIP_DIR="."
 ZIP_NAME="big-files.zip"
 TARGET_DIR="."
 COMPRESS_LEVEL=0   # 默认不压缩（-0），打包速度快，适合视频/图片等已压缩文件
